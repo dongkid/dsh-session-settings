@@ -1,0 +1,8 @@
+# dsh-session-settings bundle patch
+#
+# The row mounts the package host half (a plain Cordis plugin) and, through the
+# package dsh.client declaration, makes the web app load ./client as the
+# browser half that registers the native right-sidebar tab.
+- insert:
+    - id: session-settings
+      name: dsh-session-settings
