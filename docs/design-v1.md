@@ -113,7 +113,7 @@
 事实结论：静态安装的插件用不了 typert Remote（客户端 $mount 硬要求生成器产出的 strict codec，而生成器未发布），也用不了 host.call（动态包专属形参）。静态插件的正路是自建 HTTP 路由。
 
 - 宿主半 ctx.webServer.register({ kind: 'prefix', path: '/session-settings/api' })：只接受 POST，JSON 派发，方法名用 Object.hasOwn 严格查表。
-- 每个 handler 第一行做 fence：本插件自带一份 isTrustedApiRequest 实现（官方包不导出该 helper），信任列表取 ctx.webRuntime.trustedHosts（与 /api 网关同源），按请求现读。
+- 每个 handler 第一行做 fence：本插件自带一份 isTrustedApiRequest 实现（官方包不导出该 helper），信任列表取 ctx.webStartup.trustedHosts（0.2.1+；与 /api 网关同源；0.2.0 回退 ctx.webRuntime.trustedHosts），按请求现读。
 - 未过 fence -> 403；方法不存在 -> 404；非 POST -> 405；宿主能力缺失 -> 503（页面显示只读，而不是假装能写）。
 - 所有注册包在 ctx.effect(() => ..., '说明') 里，保证卸载与 HMR 回收。
 - 客户端调用自家前缀不要硬写前导斜杠（反代子路径会丢前缀），需要一个自己的 hostRouteUrl 等价物。

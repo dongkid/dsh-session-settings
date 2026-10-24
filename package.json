@@ -1,6 +1,6 @@
 {
   "name": "dsh-session-settings",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Per-session settings infrastructure for DSH: a native right-sidebar settings page plus a host-side store and API that other plugins register their options into.",
   "type": "module",
   "license": "MIT",

@@ -56,7 +56,9 @@ function createFakeFacility(table) {
 function createHost(services = {}) {
   const all = {
     logger: silentLogger,
-    webRuntime: { trustedHosts: [] },
+    // DSH 0.2.1 composes webStartup; webRuntime is the 0.2.0 fallback that the
+    // fallback test installs explicitly.
+    webStartup: { trustedHosts: [] },
     profileContext: { name: 'web' },
     ...services,
   }
@@ -176,6 +178,47 @@ test('apply provides the protocol service surface', async () => {
   assert.equal(host.routes.length, 1)
   assert.equal(host.routes[0].kind, 'prefix')
   assert.equal(host.routes[0].path, API_PREFIX)
+})
+
+test('the fence reads trusted hosts from webStartup (0.2.1)', async () => {
+  const { host } = await bootHost({
+    services: {
+      webStartup: { trustedHosts: ['dsh.example.test'] },
+      // Present but ignored: webStartup is authoritative when provided.
+      webRuntime: { trustedHosts: ['legacy.example.test'] },
+    },
+  })
+  const listed = await callRoute(host, {
+    url: API_PREFIX + '/registrations.list',
+    body: {},
+    headers: { host: 'dsh.example.test', origin: 'https://dsh.example.test' },
+  })
+  assert.equal(listed.status, 200, JSON.stringify(listed.json))
+  const ignoredFallback = await callRoute(host, {
+    url: API_PREFIX + '/registrations.list',
+    body: {},
+    headers: { host: 'legacy.example.test' },
+  })
+  assert.equal(ignoredFallback.status, 403, 'webRuntime must not override webStartup')
+  assert.equal(ignoredFallback.json.error.code, 'forbidden')
+})
+
+test('the fence falls back to webRuntime when webStartup is absent (0.2.0)', async () => {
+  const { host } = await bootHost({
+    services: { webStartup: undefined, webRuntime: { trustedHosts: ['legacy.example.test'] } },
+  })
+  const listed = await callRoute(host, {
+    url: API_PREFIX + '/registrations.list',
+    body: {},
+    headers: { host: 'legacy.example.test' },
+  })
+  assert.equal(listed.status, 200, JSON.stringify(listed.json))
+  const other = await callRoute(host, {
+    url: API_PREFIX + '/registrations.list',
+    body: {},
+    headers: { host: 'dsh.example.test' },
+  })
+  assert.equal(other.status, 403)
 })
 
 test('a value written for session A is invisible to session B', async () => {

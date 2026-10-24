@@ -20,7 +20,7 @@
     values.get/set/reset      需要可用的耐久存储（storageDomain 存在且 open 成功）→ 否则 503（code: storage-unavailable）
     sessionPersistence 缺失   不影响任何方法的状态码；只让后台对账被跳过（必须记日志），数据面照常
     webServer 不可用          插件不注册路由，不产生状态码
-- 信任闸门：每个 handler 第一行执行。规则与官方 isTrustedApiRequest 一致（Host 必须是回环或命中 ctx.webRuntime.trustedHosts；sec-fetch-site: cross-site 拒绝；Origin 必须同 hostname，或等于桌面壳的 dsh-app://app）。官方包不导出该 helper，本插件自带一份实现，信任列表按请求现读 ctx.webRuntime.trustedHosts。
+- 信任闸门：每个 handler 第一行执行。规则与官方 isTrustedApiRequest 一致（Host 必须是回环或命中 ctx.webStartup.trustedHosts（0.2.1+；0.2.0 回退 ctx.webRuntime.trustedHosts）；sec-fetch-site: cross-site 拒绝；Origin 必须同 hostname，或等于桌面壳的 dsh-app://app）。官方包不导出该 helper，本插件自带一份实现，信任列表按请求现读。
 - 客户端调用自家前缀时不得硬写前导斜杠（反代子路径会丢前缀），必须走一个前缀安全的 URL 构造器。
 
 ## 2. 方法表（v1 只有四个）
